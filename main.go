@@ -7,7 +7,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"models"
+	"gin-demo/models"
 )
 
 var db *gorm.DB
@@ -29,11 +29,21 @@ func initDB() {
 func setupRouter() *gin.Engine {
 	router := gin.Default()
 
-	router.GET("/users", models.GetUsers)
-	router.POST("/users", models.CreateUser)
-	router.GET("/users/:id", models.GetUserById)
-	router.PUT("/users/:id", models.UpdateUser)
-	router.DELETE("/users/:id", models.DeleteUser)
+	router.GET("/users", func(c *gin.Context) {
+		models.GetUsers(c, db)
+	})
+	router.POST("/users", func(c *gin.Context) {
+		models.CreateUser(c, db)
+	})
+	router.GET("/users/:id", func(c *gin.Context) {
+		models.GetUserByID(c, db)
+	})
+	router.PUT("/users/:id", func(c *gin.Context) {
+		models.UpdateUser(c, db)
+	})
+	router.DELETE("/users/:id", func(c *gin.Context) {
+		models.DeleteUser(c, db)
+	})
 
 	return router
 }
