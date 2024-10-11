@@ -13,6 +13,9 @@ type User struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+
+	GoogleID string `json:"google_id"`
+	Token    string `json:"token"`
 }
 
 func GetUsers(c *gin.Context, db *gorm.DB) {
@@ -94,4 +97,28 @@ func DeleteUser(c *gin.Context, db *gorm.DB) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}
+
+func CreateOrUpdateUserWithOAuth(db *gorm.DB, googleID, email, token string) (*User, error) {
+	var user User
+	result := db.Where("google_id = ?", googleID).First(&user)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			user = User{
+				GoogleID: googleID,
+				Email:    email,
+				Token:    token,
+			}
+			result = db.Create(&user)
+			if result.Error != nil {
+				return nil, result.Error
+			}
+		} else {
+			return nil, result.Error
+		}
+	} else {
+		user.Token = token
+		db.Save(&user)
+	}
+	return &user, nil
 }

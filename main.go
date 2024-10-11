@@ -1,19 +1,19 @@
 package main
 
 import (
+	"gin-demo/models"
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-
-	"gin-demo/models"
 )
 
 var db *gorm.DB
 
 func initDB() {
-	dsn := "host=localhost user=postgres password=yourpassword dbname=yourdb port=5432 sslmode=disable"
+	dsn := os.Getenv("DATABASE_URL")
 	var err error
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -43,6 +43,11 @@ func setupRouter() *gin.Engine {
 	})
 	router.DELETE("/users/:id", func(c *gin.Context) {
 		models.DeleteUser(c, db)
+	})
+
+	router.GET("/auth/google/login", models.HandleGoogleLogin)
+	router.GET("/auth/google/callback", func(c *gin.Context) {
+		models.HandleGoogleCallback(c)
 	})
 
 	return router
